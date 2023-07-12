@@ -11,7 +11,7 @@ from Process import *
 from evaluate import *
 
 # df_targets_human = get_targets('human')
-df_targets_human = pd.read_csv("/home/liuyue/PycharmProjects/data_enformer/target_human.csv",)
+df_targets_human = pd.read_csv("../data/target_human.csv",)
 df_targets_human = df_targets_human.drop('Unnamed: 0', axis=1)
 print(df_targets_human.head())
 

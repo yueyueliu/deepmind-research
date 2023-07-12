@@ -43,7 +43,7 @@ def get_metadata(organism):
   # num_targets, train_seqs, valid_seqs, test_seqs, seq_length,
   # pool_width, crop_bp, target_length
   # path = os.path.join(organism_path(organism), 'statistics.json')
-  path = './statistics.json'
+  path = '../data/statistics.json'
   with tf.io.gfile.GFile(path, 'r') as f:
     return json.load(f)
 
