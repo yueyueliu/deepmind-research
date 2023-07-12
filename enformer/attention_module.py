@@ -1,31 +1,5 @@
-# Copyright 2021 DeepMind Technologies Limited
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+
 """TransformerBlock and MultiheadAttention modules used in the paper.
-
-"Effective gene expression prediction from sequence by integrating long-range
-interactions"
-
-Žiga Avsec1, Vikram Agarwal2,4, Daniel Visentin1,4, Joseph R. Ledsam1,3,
-Agnieszka Grabska-Barwinska1, Kyle R. Taylor1, Yannis Assael1, John Jumper1,
-Pushmeet Kohli1, David R. Kelley2*
-
-1 DeepMind, London, UK
-2 Calico Life Sciences, South San Francisco, CA, USA
-3 Google, Tokyo, Japan
-4 These authors contributed equally.
-* correspondence: avsec@google.com, pushmeet@google.com, drk@calicolabs.com
-
 Example:
 ```
 mha = MultiheadAttention(

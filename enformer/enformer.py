@@ -1,31 +1,3 @@
-# Copyright 2021 DeepMind Technologies Limited
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-"""Tensorflow implementation of Enformer model.
-
-"Effective gene expression prediction from sequence by integrating long-range
-interactions"
-
-Žiga Avsec1, Vikram Agarwal2,4, Daniel Visentin1,4, Joseph R. Ledsam1,3,
-Agnieszka Grabska-Barwinska1, Kyle R. Taylor1, Yannis Assael1, John Jumper1,
-Pushmeet Kohli1, David R. Kelley2*
-
-1 DeepMind, London, UK
-2 Calico Life Sciences, South San Francisco, CA, USA
-3 Google, Tokyo, Japan
-4 These authors contributed equally.
-* correspondence: avsec@google.com, pushmeet@google.com, drk@calicolabs.com
-"""
 import inspect
 from typing import Any, Callable, Dict, Optional, Text, Union, Iterable
 
@@ -43,7 +15,7 @@ class Enformer(snt.Module):
   """Main model."""
 
   def __init__(self,
-               channels: int = 1536,
+               channels: int = 1536,#384
                num_transformer_layers: int = 11,
                num_heads: int = 8,
                pooling_type: str = 'attention',
@@ -98,16 +70,16 @@ class Enformer(snt.Module):
       ], name=name)
 
     stem = Sequential(lambda: [
-        snt.Conv1D(channels // 2, 15),
-        Residual(conv_block(channels // 2, 1, name='pointwise_conv_block')),
-        pooling_module(pooling_type, pool_size=2),
+        snt.Conv1D(channels // 2, 15),#187一维卷积
+        Residual(conv_block(channels // 2, 1, name='pointwise_conv_block')),#残差卷积
+        pooling_module(pooling_type, pool_size=2),#池化
     ], name='stem')
 
     filter_list = exponential_linspace_int(start=channels // 2, end=channels,
                                            num=6, divisible_by=128)
     conv_tower = Sequential(lambda: [
         Sequential(lambda: [
-            conv_block(num_filters, 5),
+            conv_block(num_filters, 5),#filter_list:[256,256,256,256,384,384]
             Residual(conv_block(num_filters, 1, name='pointwise_conv_block')),
             pooling_module(pooling_type, pool_size=2),
             ],
@@ -115,7 +87,7 @@ class Enformer(snt.Module):
         for i, num_filters in enumerate(filter_list)], name='conv_tower')
 
     # Transformer.
-    def transformer_mlp():
+    def transformer_mlp():#Feedorward
       return Sequential(lambda: [
           snt.LayerNorm(axis=-1, create_scale=True, create_offset=True),
           snt.Linear(channels * 2),
@@ -126,24 +98,24 @@ class Enformer(snt.Module):
 
     transformer = Sequential(lambda: [
         Sequential(lambda: [
-            Residual(Sequential(lambda: [
-                snt.LayerNorm(axis=-1,
+            Residual(Sequential(lambda: [#残差Transformer
+                snt.LayerNorm(axis=-1,#LayerNorm
                               create_scale=True, create_offset=True,
                               scale_init=snt.initializers.Ones()),
-                attention_module.MultiheadAttention(**whole_attention_kwargs,
+                attention_module.MultiheadAttention(**whole_attention_kwargs,#MultiheadAttention
                                                     name=f'attention_{i}'),
-                snt.Dropout(dropout_rate)], name='mha')),
-            Residual(transformer_mlp())], name=f'transformer_block_{i}')
-        for i in range(num_transformer_layers)], name='transformer')
+                snt.Dropout(dropout_rate)], name='mha')),#Dropout
+            Residual(transformer_mlp())], name=f'transformer_block_{i}')#残差Feedorward
+        for i in range(num_transformer_layers)], name='transformer')#*11层Transformer
 
-    crop_final = TargetLengthCrop1D(TARGET_LENGTH, name='target_input')
+    crop_final = TargetLengthCrop1D(TARGET_LENGTH, name='target_input')#裁减层
 
     final_pointwise = Sequential(lambda: [
         conv_block(channels * 2, 1),
         snt.Dropout(dropout_rate / 8),
         gelu], name='final_pointwise')
 
-    self._trunk = Sequential([stem,
+    self._trunk = Sequential([stem,#将所有Block堆叠到一起
                               conv_tower,
                               transformer,
                               crop_final,
