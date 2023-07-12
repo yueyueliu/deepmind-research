@@ -176,6 +176,7 @@ class TargetLengthCrop1D(snt.Module):
       return inputs[..., trim:-trim, :]
 
 
+
 class Sequential(snt.Module):
   """snt.Sequential automatically passing is_training where it exists."""
 
